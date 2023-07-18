@@ -1,5 +1,4 @@
 const express = require("express");
-
 const dotenv = require("dotenv").config();
 const dBconnected = require("./config/dbConnect")
 const authRouters = require("./routes/authRoute")
