@@ -78,11 +78,11 @@ exports.deleteaUser =asynchandler(async(req,res)=>{
 
 
 exports.UpdateaUser =asynchandler(async(req,res)=>{
-  const {firstname,lastname,mobile,email} = req.body;
+  const {firstname,lastname,mobile,email,role} = req.body;
   try {
     // res.json()
     const{id}= req.params;
-    const updateUser =await User.findByIdAndUpdate(id,{firstname,lastname,mobile,email},
+    const updateUser =await User.findByIdAndUpdate(id,{firstname,lastname,mobile,email,role},
       {new : true},);
     res.json(updateUser)
 
