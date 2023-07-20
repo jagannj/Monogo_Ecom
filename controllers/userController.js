@@ -55,8 +55,8 @@ exports.getallUser =asynchandler(async(req,res)=>{
 exports.getaUser =asynchandler(async(req,res)=>{
   try {
     // res.json()
-    const{id}= req.params;
-    const getUserbyId =await User.findById(id);
+    const{_id}= req.user
+    const getUserbyId =await User.findById(_id);
     res.json(getUserbyId)
 
   } catch (error) {
@@ -78,11 +78,14 @@ exports.deleteaUser =asynchandler(async(req,res)=>{
 
 
 exports.UpdateaUser =asynchandler(async(req,res)=>{
+
   const {firstname,lastname,mobile,email,role} = req.body;
   try {
     // res.json()
-    const{id}= req.params;
-    const updateUser =await User.findByIdAndUpdate(id,{firstname,lastname,mobile,email,role},
+    const {_id} = req.user
+    console.log("@@@",req.user._id);
+    // const{id}= req.params;
+    const updateUser =await User.findByIdAndUpdate(_id,{firstname,lastname,mobile,email,role},
       {new : true},);
     res.json(updateUser)
 
