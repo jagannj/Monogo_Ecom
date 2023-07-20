@@ -1,41 +1,41 @@
 const User = require("../models/userModel");
 const asynchandler = require("express-async-handler")
-const {genToken} = require("../config/jwtToken")
-exports.createUser = asynchandler(async(req,res)=>{
+const { genToken } = require("../config/jwtToken")
+exports.createUser = asynchandler(async (req, res) => {
 
-    const email = req.body.email;
-    const findUser = await User.findOne({email:email});
-    if(!findUser){
-        // Create new User
-        const newUser =await User.create(req.body);
-        res.json(newUser);
+  const email = req.body.email;
+  const findUser = await User.findOne({ email: email });
+  if (!findUser) {
+    // Create new User
+    const newUser = await User.create(req.body);
+    res.json(newUser);
 
-    }
-    else{
-        // res.json({message:"user Already Exist"})
-        throw new Error ('User Already Exist')
-    }
+  }
+  else {
+    // res.json({message:"user Already Exist"})
+    throw new Error('User Already Exist')
+  }
 
 })
 
 // user Login Controller
 
-exports.UserLogin = asynchandler(async(req,res)=>{
-  const {email, password}= req.body; 
+exports.UserLogin = asynchandler(async (req, res) => {
+  const { email, password } = req.body;
   // User  if user exists or Not 
-  const findUser = await User.findOne({email:email});
-  if(findUser && await findUser.isPasswordMatched(password)){
-    
+  const findUser = await User.findOne({ email: email });
+  if (findUser && await findUser.isPasswordMatched(password)) {
+
     res.json({
-        _id:findUser?._id,
-        firstname:findUser?.firstname,
-        lastname:findUser?.lastname,
-        email: findUser?.email,
-        mobile:findUser?.mobile,
-        token:genToken(findUser?._id)
+      _id: findUser?._id,
+      firstname: findUser?.firstname,
+      lastname: findUser?.lastname,
+      email: findUser?.email,
+      mobile: findUser?.mobile,
+      token: genToken(findUser?._id)
     })
   }
-  else{
+  else {
     throw new Error(`Invalid Credentials`)
   }
 
@@ -43,20 +43,20 @@ exports.UserLogin = asynchandler(async(req,res)=>{
 
 //Get all users
 
-exports.getallUser =asynchandler(async(req,res)=>{
+exports.getallUser = asynchandler(async (req, res) => {
   try {
-    const getUser =await User.find();
+    const getUser = await User.find();
     res.json(getUser)
   } catch (error) {
     throw new Error(error)
   }
 })
 
-exports.getaUser =asynchandler(async(req,res)=>{
+exports.getaUser = asynchandler(async (req, res) => {
   try {
     // res.json()
-    const{_id}= req.user
-    const getUserbyId =await User.findById(_id);
+    const { _id } = req.user
+    const getUserbyId = await User.findById(_id);
     res.json(getUserbyId)
 
   } catch (error) {
@@ -64,11 +64,11 @@ exports.getaUser =asynchandler(async(req,res)=>{
   }
 })
 
-exports.deleteaUser =asynchandler(async(req,res)=>{
+exports.deleteaUser = asynchandler(async (req, res) => {
   try {
     // res.json()
-    const{id}= req.params;
-    const deleteUserbyId =await User.findByIdAndDelete(id);
+    const { id } = req.params;
+    const deleteUserbyId = await User.findByIdAndDelete(id);
     res.json(deleteUserbyId)
 
   } catch (error) {
@@ -77,16 +77,16 @@ exports.deleteaUser =asynchandler(async(req,res)=>{
 })
 
 
-exports.UpdateaUser =asynchandler(async(req,res)=>{
+exports.UpdateaUser = asynchandler(async (req, res) => {
 
-  const {firstname,lastname,mobile,email,role} = req.body;
+  const { firstname, lastname, mobile, email, role } = req.body;
   try {
     // res.json()
-    const {_id} = req.user
-    console.log("@@@",req.user._id);
+    const { _id } = req.user
+    console.log("@@@", req.user._id);
     // const{id}= req.params;
-    const updateUser =await User.findByIdAndUpdate(_id,{firstname,lastname,mobile,email,role},
-      {new : true},);
+    const updateUser = await User.findByIdAndUpdate(_id, { firstname, lastname, mobile, email, role },
+      { new: true },);
     res.json(updateUser)
 
   } catch (error) {
@@ -94,3 +94,29 @@ exports.UpdateaUser =asynchandler(async(req,res)=>{
   }
 })
 
+// Blocking Stages
+
+exports.blockUser = asynchandler(async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const blockUser = await User.findByIdAndUpdate(id, {
+      isBlocked: true
+    }, { new: true })
+    res.send({message:"User is an Blocked!"})
+  } catch (error) {
+    throw new Error(error)
+  }
+
+})
+
+exports.unblockUser = asynchandler(async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const unblockUser = await User.findByIdAndUpdate(id, {
+      isBlocked: false
+    }, { new: true })
+    res.send({message:"User is an un Blocked!"})
+  } catch (error) {
+    throw new Error(error)
+  }
+})
