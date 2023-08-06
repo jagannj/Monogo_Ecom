@@ -1,6 +1,9 @@
 const User = require("../models/userModel");
 const asynchandler = require("express-async-handler")
+const {refreshToken} = require("../config/refreshToken")
 const { genToken } = require("../config/jwtToken")
+const {validateMongodbId} = require("../utils/validate.MongodbId");
+
 exports.createUser = asynchandler(async (req, res) => {
 
   const email = req.body.email;
@@ -25,7 +28,14 @@ exports.UserLogin = asynchandler(async (req, res) => {
   // User  if user exists or Not 
   const findUser = await User.findOne({ email: email });
   if (findUser && await findUser.isPasswordMatched(password)) {
-
+    const generateRefreshToken = await refreshToken(findUser?._id)
+    const updateUser = await User.findByIdAndUpdate(findUser?.id,{refreshToken:generateRefreshToken},{new:true});
+    res.cookie("refreshToken",generateRefreshToken,
+    {
+      httpOnly:true,
+      maxAge:72*60*60*1000
+    }
+    )
     res.json({
       _id: findUser?._id,
       firstname: findUser?.firstname,
@@ -38,6 +48,12 @@ exports.UserLogin = asynchandler(async (req, res) => {
   else {
     throw new Error(`Invalid Credentials`)
   }
+
+})
+// handle refresh token 
+exports.handleRefreshToken = asynchandler(async(req,res)=>{
+  const cookie = req.cookies
+  console.log(cookie);
 
 })
 
@@ -56,6 +72,7 @@ exports.getaUser = asynchandler(async (req, res) => {
   try {
     // res.json()
     const { _id } = req.user
+    validateMongodbId(_id)
     const getUserbyId = await User.findById(_id);
     res.json(getUserbyId)
 
@@ -68,6 +85,7 @@ exports.deleteaUser = asynchandler(async (req, res) => {
   try {
     // res.json()
     const { id } = req.params;
+  validateMongodbId(id)
     const deleteUserbyId = await User.findByIdAndDelete(id);
     res.json(deleteUserbyId)
 
@@ -83,7 +101,6 @@ exports.UpdateaUser = asynchandler(async (req, res) => {
   try {
     // res.json()
     const { _id } = req.user
-    console.log("@@@", req.user._id);
     // const{id}= req.params;
     const updateUser = await User.findByIdAndUpdate(_id, { firstname, lastname, mobile, email, role },
       { new: true },);
@@ -98,6 +115,7 @@ exports.UpdateaUser = asynchandler(async (req, res) => {
 
 exports.blockUser = asynchandler(async (req, res, next) => {
   const { id } = req.params;
+  validateMongodbId(id)
   try {
     const blockUser = await User.findByIdAndUpdate(id, {
       isBlocked: true
@@ -111,6 +129,7 @@ exports.blockUser = asynchandler(async (req, res, next) => {
 
 exports.unblockUser = asynchandler(async (req, res, next) => {
   const { id } = req.params;
+  validateMongodbId(id)
   try {
     const unblockUser = await User.findByIdAndUpdate(id, {
       isBlocked: false
